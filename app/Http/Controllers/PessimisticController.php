@@ -9,8 +9,14 @@ class PessimisticController extends Controller
 {
     public function lockShared()
     {
+        // Si dos procesos ejecutan esta transacción al mismo tiempo
+        // se producira un deadlock dado que ninguno puede modificar el producto
+        // con id 1 hasta que alguno suelte el lock
+        // La utilidad de sharedLock es para asegurarse de que los datos leidos no
+        // son sucios, dado que el dato que tu has leido no lo puede modificar nadie hasta que termine tu
+        // transaccion
         $producto = DB::transaction(function () {
-            $producto = Product::query()->lockForUpdate()->find(1);
+            $producto = Product::query()->sharedLock()->find(1);
             dump($producto->stock);
             dump($producto->stock_value);
             sleep(10);
@@ -22,18 +28,10 @@ class PessimisticController extends Controller
             return $producto;
         });
         return response()->json($producto);
-        // stock = 10
-        // stock value = 21.14
-
-        // First request
-        // stock = 11
-        // stock_value = 22.24
-
-        // Second request
-        // stock = 12
-        // stock_value = 23.34
     }
 
+    // Esto evita el deadlock dado que el segundo proceso no podra leer los datos
+    // del producto con id 1 hasta que termine la transacción el proceso 1
     public function lockForUpdate()
     {
         $producto = DB::transaction(function () {

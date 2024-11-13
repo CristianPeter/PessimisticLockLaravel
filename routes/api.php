@@ -2,8 +2,11 @@
 
 
 use App\Http\Controllers\PessimisticController;
+use App\Http\Controllers\SharedLockController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
+// SharedLock vs LockForUpdate
 
 Route::get('/sharedLock', function (PessimisticController $pessimisticController) {
     return $pessimisticController->lockShared();
@@ -15,6 +18,18 @@ Route::get('/regenerateDB', function (PessimisticController $pessimisticControll
     productsFactory();
     return "regenerated";
 });
+
+
+// Shared Lock testing
+// read
+Route::get('/sharedLock/read', function (SharedLockController $sharedLockController){
+   return $sharedLockController->sharedRead();
+});
+// update
+Route::get('/sharedLock/update', function (SharedLockController $sharedLockController){
+    return $sharedLockController->sharedUpdate();
+});
+
 
 
 function productsFactory()
